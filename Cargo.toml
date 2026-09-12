@@ -1,0 +1,15 @@
+[package]
+name = "banco-memoria"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+description = "Banco chave-valor em memória com extensões dinâmicas em Lua"
+
+[dependencies]
+mlua = { version = "0.12", features = ["lua54", "vendored"] }
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
+
