@@ -12,7 +12,7 @@ pub enum ParsedLine {
 }
 
 pub fn parse(line: &str) -> Result<ParsedLine, String> {
-    let line = line.trim_end_matches(|character| character == '\r' || character == '\n');
+    let line = line.trim_end_matches(['\r', '\n']);
 
     if line.trim().is_empty() {
         return Ok(ParsedLine::Empty);
