@@ -1,0 +1,25 @@
+# EP01 - Casos de teste da extensão proposta: Temperatura
+# Os casos são cumulativos e devem ser executados em uma única sessão.
+# Formato: comando -> resultado esperado
+
+ADD temperatura_sala 25.5       -> OK
+GET temperatura_sala            -> 25.50 °C = 77.90 °F
+
+ADD temperatura_zero 0          -> OK
+GET temperatura_zero            -> 0.00 °C = 32.00 °F
+
+ADD temperatura_absoluta -273.15 -> OK
+GET temperatura_absoluta         -> -273.15 °C = -459.67 °F
+
+ADD temperatura_invalida -273.16 -> ERRO (abaixo do zero absoluto)
+ADD temperatura_texto quente     -> ERRO (não é número)
+ADD temperatura_virgula 25,5     -> ERRO (separador inválido)
+ADD temperatura_precisao 1.234   -> ERRO (mais de duas casas decimais)
+ADD temperatura_vazia            -> ERRO (valor vazio)
+
+# A falha não altera o valor válido que já estava armazenado.
+ADD temperatura_sala -300        -> ERRO (abaixo do zero absoluto)
+GET temperatura_sala             -> 25.50 °C = 77.90 °F
+
+EXIT                              -> encerra o programa
+

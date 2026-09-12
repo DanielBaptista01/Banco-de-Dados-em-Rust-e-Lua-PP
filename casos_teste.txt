@@ -1,0 +1,125 @@
+# EP01 - Casos de teste
+#
+# O trabalho sera exercitado com estas entradas. Rode todas antes de entregar.
+# Formato: comando -> resultado esperado
+#
+# IMPORTANTE: os casos sao CUMULATIVOS. Leia o arquivo como uma unica sessao,
+# de cima para baixo, num banco que comeca vazio. O que um ADD grava continua
+# gravado nos casos seguintes.
+#
+# "ERRO" significa que a operacao deve falhar reportando o motivo, e nao
+# derrubar o processo nem gravar o valor no banco.
+
+# ---------------------------------------------------------------------------
+# Extensao CPF - entrada aceita apenas os 11 digitos, sem formatacao
+# ---------------------------------------------------------------------------
+
+ADD cpf_a 52998224725      -> OK
+GET cpf_a                  -> 529.982.247-25
+
+ADD cpf_b 12345678909      -> OK
+GET cpf_b                  -> 123.456.789-09
+
+# Digito verificador errado (este e o CPF que aparece em muitos exemplos pela
+# internet e nao e valido: o segundo DV correto e 9, nao 0)
+ADD cpf_c 12345678900      -> ERRO (digito verificador invalido)
+
+# Armadilha: sequencias de digito repetido PASSAM no calculo do digito
+# verificador, mas nao sao CPFs validos. Precisam ser rejeitadas a parte.
+ADD cpf_d 11111111111      -> ERRO (sequencia de digitos repetidos)
+ADD cpf_e 00000000000      -> ERRO (sequencia de digitos repetidos)
+ADD cpf_f 99999999999      -> ERRO (sequencia de digitos repetidos)
+
+# Unicidade: o mesmo CPF nao pode existir sob duas chaves diferentes.
+# Atencao na terceira linha: regravar o mesmo CPF na MESMA chave e permitido,
+# entao a regra e "existe em outra chave", nao "o valor ja existe".
+ADD cpf_joao 28746351973   -> OK
+ADD cpf_maria 28746351973  -> ERRO (CPF ja cadastrado na chave cpf_joao)
+ADD cpf_joao 28746351973   -> OK
+GET cpf_maria              -> ERRO (chave inexistente)
+
+# E o cpf_a la de cima continua gravado, entao repeti-lo aqui tambem colide
+ADD cpf_outro 52998224725  -> ERRO (CPF ja cadastrado na chave cpf_a)
+
+# Tamanho e formato
+ADD cpf_g 5299822472       -> ERRO (10 digitos, esperados 11)
+ADD cpf_h 529982247250     -> ERRO (12 digitos, esperados 11)
+ADD cpf_i 529.982.247-25   -> ERRO (entrada deve conter apenas numeros)
+ADD cpf_j 5299822472a      -> ERRO (caractere nao numerico)
+ADD cpf_k                  -> ERRO (valor vazio)
+
+# ---------------------------------------------------------------------------
+# Extensao Data - entrada em ISO8601 (aaaa-mm-dd), saida em dd/mm/aaaa
+# ---------------------------------------------------------------------------
+
+ADD data_a 2022-10-23      -> OK
+GET data_a                 -> 23/10/2022
+
+ADD data_b 2023-01-05      -> OK
+GET data_b                 -> 05/01/2023
+
+# Ano bissexto: divisivel por 4
+ADD data_c 2024-02-29      -> OK
+GET data_c                 -> 29/02/2024
+
+# Armadilha do seculo: divisivel por 400 e bissexto, divisivel por 100 e nao
+# por 400 NAO e. Uma implementacao que so testa "ano % 4 == 0" erra o 1900.
+ADD data_d 2000-02-29      -> OK
+GET data_d                 -> 29/02/2000
+ADD data_e 1900-02-29      -> ERRO (1900 nao e bissexto)
+ADD data_f 2100-02-29      -> ERRO (2100 nao e bissexto)
+ADD data_g 2023-02-29      -> ERRO (2023 nao e bissexto)
+
+# Dias fora da faixa do mes
+ADD data_h 2023-04-31      -> ERRO (abril tem 30 dias)
+ADD data_i 2023-06-31      -> ERRO (junho tem 30 dias)
+ADD data_j 2023-01-32      -> ERRO (dia fora da faixa)
+
+# Faixas invalidas
+ADD data_k 2023-13-01      -> ERRO (mes fora da faixa)
+ADD data_l 2023-00-10      -> ERRO (mes zero)
+ADD data_m 2023-01-00      -> ERRO (dia zero)
+
+# Formato: ISO8601 exige zero a esquerda e ano com 4 digitos
+ADD data_n 2023-1-5        -> ERRO (formato invalido, esperado aaaa-mm-dd)
+ADD data_o 23-01-05        -> ERRO (ano deve ter 4 digitos)
+ADD data_p 05/01/2023      -> ERRO (formato invalido, esperado aaaa-mm-dd)
+ADD data_q 20230105        -> ERRO (formato invalido, esperado aaaa-mm-dd)
+ADD data_r                 -> ERRO (valor vazio)
+
+# ---------------------------------------------------------------------------
+# Chaves sem extensao - devem passar direto, sem validacao nem formatacao
+# ---------------------------------------------------------------------------
+
+ADD nome_zezinho Jose      -> OK
+GET nome_zezinho           -> Jose
+
+ADD contador 42            -> OK
+GET contador               -> 42
+
+# Uma chave que so LEMBRA um prefixo de extensao nao deve ser capturada por ela
+ADD cpfx 123               -> OK
+GET cpfx                   -> 123
+
+# ---------------------------------------------------------------------------
+# Casos gerais
+# ---------------------------------------------------------------------------
+
+GET chave_que_nao_existe   -> ERRO (chave inexistente)
+
+# Nenhuma destas linhas pode derrubar o programa: o erro e reportado e o
+# prompt volta
+GET                        -> ERRO (comando incompleto)
+ADD                        -> ERRO (comando incompleto)
+DELETE cpf_a               -> ERRO (comando desconhecido)
+add cpf_x 52998224725      -> ERRO (comando desconhecido)
+                           -> (linha em branco: apenas devolve o prompt)
+
+# Sobrescrita: o segundo ADD e invalido, entao o valor anterior deve permanecer
+ADD cpf_z 64028193796      -> OK
+ADD cpf_z 11111111111      -> ERRO (sequencia de digitos repetidos)
+GET cpf_z                  -> 640.281.937-96
+
+# Encerramento: so o EXIT termina o processo
+EXIT                       -> encerra o programa
+
