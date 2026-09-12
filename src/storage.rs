@@ -1,8 +1,4 @@
-use std::{
-    cell::RefCell,
-    collections::HashMap,
-    rc::Rc,
-};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 #[derive(Clone, Default)]
 pub struct Store {
@@ -23,10 +19,13 @@ impl Store {
     }
 
     pub fn find_key_by_value(&self, value: &str, except_key: Option<&str>) -> Option<String> {
-        self.entries.borrow().iter().find_map(|(key, stored_value)| {
-            let is_excluded = except_key.is_some_and(|excluded| excluded == key.as_str());
-            (stored_value == value && !is_excluded).then(|| key.clone())
-        })
+        self.entries
+            .borrow()
+            .iter()
+            .find_map(|(key, stored_value)| {
+                let is_excluded = except_key.is_some_and(|excluded| excluded == key.as_str());
+                (stored_value == value && !is_excluded).then(|| key.clone())
+            })
     }
 }
 
@@ -46,7 +45,10 @@ mod tests {
     fn searches_by_value_and_honors_exclusion() {
         let store = Store::new();
         store.insert("key".to_string(), "value".to_string());
-        assert_eq!(store.find_key_by_value("value", None).as_deref(), Some("key"));
+        assert_eq!(
+            store.find_key_by_value("value", None).as_deref(),
+            Some("key")
+        );
         assert_eq!(store.find_key_by_value("value", Some("key")), None);
     }
 }

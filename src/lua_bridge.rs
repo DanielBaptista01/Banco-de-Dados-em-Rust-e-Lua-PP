@@ -196,14 +196,14 @@ impl LuaBridge {
             .map_err(|error| BridgeError::new(format!("retorno inválido da extensão: {error}")))?;
 
         if succeeded {
-            let transformed: String = response
-                .get("value")
-                .map_err(|error| BridgeError::new(format!("retorno inválido da extensão: {error}")))?;
+            let transformed: String = response.get("value").map_err(|error| {
+                BridgeError::new(format!("retorno inválido da extensão: {error}"))
+            })?;
             Ok(ExtensionResult::Success(transformed))
         } else {
-            let reason: String = response
-                .get("error")
-                .map_err(|error| BridgeError::new(format!("retorno inválido da extensão: {error}")))?;
+            let reason: String = response.get("error").map_err(|error| {
+                BridgeError::new(format!("retorno inválido da extensão: {error}"))
+            })?;
             Ok(ExtensionResult::Failure(reason))
         }
     }

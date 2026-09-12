@@ -14,4 +14,3 @@ fn main() {
         Err(error) => eprintln!("ERRO: não foi possível iniciar o banco: {error}"),
     }
 }
-

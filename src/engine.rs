@@ -40,7 +40,9 @@ impl Engine {
                 EngineResponse::Continue("OK".to_string())
             }
             Ok(ExtensionResult::Failure(reason)) => EngineResponse::Continue(error_line(&reason)),
-            Err(error) => EngineResponse::Continue(error_line(&format!("falha na extensão: {error}"))),
+            Err(error) => {
+                EngineResponse::Continue(error_line(&format!("falha na extensão: {error}")))
+            }
         }
     }
 
@@ -52,7 +54,9 @@ impl Engine {
         match self.extensions.dispatch("GET", &key, &value) {
             Ok(ExtensionResult::Success(transformed)) => EngineResponse::Continue(transformed),
             Ok(ExtensionResult::Failure(reason)) => EngineResponse::Continue(error_line(&reason)),
-            Err(error) => EngineResponse::Continue(error_line(&format!("falha na extensão: {error}"))),
+            Err(error) => {
+                EngineResponse::Continue(error_line(&format!("falha na extensão: {error}")))
+            }
         }
     }
 }
