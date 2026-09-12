@@ -1,4 +1,4 @@
-# Daniel Santos Baptista
+# Integrantes Daniel Santos Baptista e Isaias Maia de Oliveira
 
 # Banco de Dados em Memória — Rust + Lua
 
