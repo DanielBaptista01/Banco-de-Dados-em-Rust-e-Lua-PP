@@ -1,4 +1,5 @@
 import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -7,10 +8,10 @@ ROOT = Path(__file__).resolve().parents[1]
 BINARY = ROOT / "target" / "debug" / "banco-memoria"
 
 
-def run_session(commands: list[str]) -> list[str]:
+def run_session(commands: list[str], working_directory: Path = ROOT) -> list[str]:
     process = subprocess.run(
         [str(BINARY)],
-        cwd=ROOT,
+        cwd=working_directory,
         input="\n".join(commands) + "\n",
         text=True,
         capture_output=True,
@@ -27,6 +28,31 @@ def run_session(commands: list[str]) -> list[str]:
 
 
 class BancoAcceptanceTests(unittest.TestCase):
+    def test_full_official_script(self) -> None:
+        commands = []
+        expectations = []
+
+        for raw_line in (ROOT / "casos_teste.txt").read_text(encoding="utf-8").splitlines():
+            if raw_line.lstrip().startswith("#") or "->" not in raw_line:
+                continue
+
+            command, expected = raw_line.split("->", maxsplit=1)
+            command = command.strip()
+            expected = expected.strip()
+            commands.append(command)
+
+            if command and command != "EXIT":
+                expectations.append(expected)
+
+        output = run_session(commands)
+        self.assertEqual(len(output), len(expectations))
+
+        for actual, expected in zip(output, expectations, strict=True):
+            if expected.startswith("ERRO"):
+                self.assertTrue(actual.startswith("ERRO:"), (actual, expected))
+            else:
+                self.assertEqual(actual, expected)
+
     def test_cpf_validation_uniqueness_and_transactional_overwrite(self) -> None:
         output = run_session(
             [
@@ -113,7 +139,58 @@ class BancoAcceptanceTests(unittest.TestCase):
         self.assertEqual(output[5], "25.50 °C = 77.90 °F")
         self.assertTrue(output[6].startswith("ERRO:"))
 
+    def test_unknown_extension_works_without_recompiling(self) -> None:
+        extension = """
+local function success(value)
+    return { ok = true, value = value }
+end
+
+local function failure(reason)
+    return { ok = false, error = reason }
+end
+
+register_extension({
+    prefix = "secret_",
+    on_add = function(key, value)
+        if #value < 3 then
+            return failure("valor muito curto")
+        end
+
+        local normalized = string.upper(value)
+        local existing_key = db_find_key_by_value(normalized, key)
+        if existing_key ~= nil then
+            return failure("valor já usado em " .. existing_key)
+        end
+
+        return success(normalized)
+    end,
+    on_get = function(_, value)
+        return success("[" .. value .. "]")
+    end,
+})
+"""
+
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            extensions = directory / "extensions"
+            extensions.mkdir()
+            (extensions / "unknown.lua").write_text(extension, encoding="utf-8")
+
+            output = run_session(
+                [
+                    "ADD secret_first abc",
+                    "GET secret_first",
+                    "ADD secret_second abc",
+                    "ADD secret_short x",
+                    "EXIT",
+                ],
+                directory,
+            )
+
+        self.assertEqual(output[0:2], ["OK", "[ABC]"])
+        self.assertIn("secret_first", output[2])
+        self.assertTrue(output[3].startswith("ERRO:"))
+
 
 if __name__ == "__main__":
     unittest.main()
-
