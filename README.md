@@ -1,6 +1,8 @@
-# Integrantes Daniel Santos Baptista e Isaias Maia de Oliveira
-
 # Banco de Dados em Memória — Rust + Lua
+
+**Integrantes do Grupo:**
+- Isaias Maia de Oliveira
+- Daniel Santos Baptista
 
 Banco chave-valor volátil, inspirado em Redis e Memcached, implementado em Rust e extensível em tempo de execução por scripts Lua. O programa aceita somente os comandos `ADD`, `GET` e `EXIT`; os dados existem apenas durante a execução.
 
